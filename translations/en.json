@@ -1,0 +1,40 @@
+{
+  "_meta": {
+    "name": "English"
+  },
+  "screen": {
+    "decimal": ".",
+    "e5": "E5",
+    "e10": "E10",
+    "diesel": "Diesel",
+    "closed": "Closed",
+    "no_prices": "No prices",
+    "choose": "Choose the sensor",
+    "waiting": "No stations in the sensor",
+    "none": "No station open",
+    "wrong_sensor": "Choose a sensor"
+  },
+  "app": {
+    "name": "Fuel prices (DE)",
+    "summary": "E5, E10 and diesel at your petrol stations, from Home Assistant’s Tankerkönig integration.",
+    "tile_name": "Fuel prices",
+    "tile_example": "JET · Diesel 2.34",
+    "fuel_e5": "Super E5",
+    "fuel_e10": "Super E10",
+    "fuel_diesel": "Diesel",
+    "sort": "Sort by",
+    "sort_hint": "The cheapest first for this fuel, or in your own order.",
+    "sort_none": "My order",
+    "cheapest": "Only the cheapest",
+    "cheapest_hint": "Show only this many stations, the cheapest first. 0 shows all. Needs a fuel to sort by.",
+    "hide_closed": "Hide closed stations",
+    "hide_closed_hint": "A station that is closed now is left out.",
+    "address": "Show the address",
+    "address_hint": "The street and town under the station's name.",
+    "status": "Show open or closed",
+    "status_hint": "Says when a station is closed.",
+    "changes": "Show price changes",
+    "changes_hint": "A price that went up turns red, one that went down green, until the next change.",
+    "fuel_hint": "Which prices to show: diesel, E10 and E5, each on or off."
+  }
+}

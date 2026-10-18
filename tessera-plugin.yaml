@@ -1,0 +1,47 @@
+# Fuel prices from Home Assistant's Tankerkönig integration: one template sensor gathers the stations you choose into
+# lists, and this tile shows their prices for E5, E10 and diesel, whether they are open, sorted and filtered the way
+# you choose. No internet service of its own: the integration already asks Tankerkönig. Every field is explained in
+# docs/MANIFEST.md of tessera-plugins.
+id: tankerkoenig
+version: 0.1.0
+# 0.9: Tone::GOOD and one-line labels; a tile of an entity with has_attributes needs 0.5.
+api: "0.9"
+icon: gas-station
+maintainer: hflocki
+license: MIT
+stage: beta
+topics: [travel, money]
+requires:
+  esphome: 2026.6.2
+boards: any
+flash_kb: 10
+
+tiles:
+  - id: prices
+    name: tile_name
+    icon: gas-station
+    sizes: { min: 1x1, max: 4x4 }
+    # Up to six rows of eight labels, a header of four, the single view's four, and ten stations of fixed fields.
+    memory: 6400
+    # The template sensor of the README: lists of the stations' names, addresses, open state and prices, in the order
+    # of its device list. Only sensors with these lists are offered in the inspector.
+    domains: [sensor]
+    has_attributes: [station_names]
+    attributes: [station_names, station_places, station_open, e5, e10, diesel]
+    example: tile_example
+    options:
+      - { id: diesel, kind: toggle, default: true, label: fuel_diesel, hint: fuel_hint }
+      - { id: e10, kind: toggle, default: true, label: fuel_e10 }
+      - { id: e5, kind: toggle, default: true, label: fuel_e5 }
+      - id: sort
+        kind: choice
+        default: none
+        label: sort
+        hint: sort_hint
+        choices: [{ value: none, label: sort_none }, { value: diesel, label: fuel_diesel },
+                  { value: e10, label: fuel_e10 }, { value: e5, label: fuel_e5 }]
+      - { id: cheapest, kind: number, min: 0, max: 10, step: 1, default: 0, label: cheapest, hint: cheapest_hint }
+      - { id: hide_closed, kind: toggle, default: false, label: hide_closed, hint: hide_closed_hint }
+      - { id: address, kind: toggle, default: true, label: address, hint: address_hint }
+      - { id: status, kind: toggle, default: true, label: status, hint: status_hint }
+      - { id: changes, kind: toggle, default: true, label: changes, hint: changes_hint }

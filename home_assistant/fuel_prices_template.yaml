@@ -1,0 +1,70 @@
+# A template sensor for the Tessera tile "Fuel prices". Put it in configuration.yaml (or a file it includes) and
+# restart Home Assistant once; after that, Developer tools > YAML > Template entities reloads it.
+#
+# `stations` lists the device ids of your Tankerkönig stations, in the order the tile shows them. Each station of the
+# Tankerkönig integration is a device: open it under Settings > Devices & services > Tankerkönig, and the id is the
+# last part of the page's address (.../config/devices/device/<id>). A Tankerkönig card on a dashboard has the same ids
+# under `stations:`.
+template:
+  - sensor:
+      - name: Fuel prices for screens
+        unique_id: fuel_prices_for_screens
+        icon: mdi:gas-station
+        variables:
+          stations:
+            - 00000000000000000000000000000000
+            # - 11111111111111111111111111111111
+        # How many of the stations are open now.
+        state: >
+          {{ stations | map('device_entities') | sum(start=[]) | select('match', 'binary_sensor\.')
+             | select('is_state', 'on') | list | count }}
+        attributes:
+          # The brand, or the station's name when it has none.
+          station_names: >
+            {% set ns = namespace(v=[]) %}
+            {% for d in stations %}
+              {% set p = device_entities(d) | select('match', 'sensor\.') | list %}
+              {% set brand = p | map('state_attr', 'brand') | select | first | default('') %}
+              {% set ns.v = ns.v + [brand or device_attr(d, 'name_by_user') or device_attr(d, 'name') or '?'] %}
+            {% endfor %}
+            {{ ns.v }}
+          # Street, house number and town.
+          station_places: >
+            {% set ns = namespace(v=[]) %}
+            {% for d in stations %}
+              {% set p = device_entities(d) | select('match', 'sensor\.') | list | first | default('') %}
+              {% set nr = state_attr(p, 'house_number') %}
+              {% set street = ((state_attr(p, 'street') or '') ~ ' ' ~ (nr if nr not in [none, 'None'] else '')) | trim %}
+              {% set ns.v = ns.v + [[street, state_attr(p, 'city') or ''] | select | join(', ')] %}
+            {% endfor %}
+            {{ ns.v }}
+          # 1 open, 0 closed, -1 not known.
+          station_open: >
+            {% set ns = namespace(v=[]) %}
+            {% for d in stations %}
+              {% set s = device_entities(d) | select('match', 'binary_sensor\.') | list | first | default('') %}
+              {% set ns.v = ns.v + [1 if is_state(s, 'on') else 0 if is_state(s, 'off') else -1] %}
+            {% endfor %}
+            {{ ns.v }}
+          # The prices, 0 where a station sells none or has none right now.
+          diesel: >
+            {% set ns = namespace(v=[]) %}
+            {% for d in stations %}
+              {% set ns.v = ns.v + [device_entities(d) | select('is_state_attr', 'fuel_type', 'diesel')
+                                    | map('states') | map('float', 0) | first | default(0)] %}
+            {% endfor %}
+            {{ ns.v }}
+          e10: >
+            {% set ns = namespace(v=[]) %}
+            {% for d in stations %}
+              {% set ns.v = ns.v + [device_entities(d) | select('is_state_attr', 'fuel_type', 'e10')
+                                    | map('states') | map('float', 0) | first | default(0)] %}
+            {% endfor %}
+            {{ ns.v }}
+          e5: >
+            {% set ns = namespace(v=[]) %}
+            {% for d in stations %}
+              {% set ns.v = ns.v + [device_entities(d) | select('is_state_attr', 'fuel_type', 'e5')
+                                    | map('states') | map('float', 0) | first | default(0)] %}
+            {% endfor %}
+            {{ ns.v }}

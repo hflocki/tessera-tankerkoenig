@@ -1,0 +1,40 @@
+{
+  "_meta": {
+    "name": "Deutsch"
+  },
+  "screen": {
+    "decimal": ",",
+    "e5": "E5",
+    "e10": "E10",
+    "diesel": "Diesel",
+    "closed": "Geschlossen",
+    "no_prices": "Keine Preise",
+    "choose": "Sensor wählen",
+    "waiting": "Keine Tankstellen im Sensor",
+    "none": "Keine Tankstelle offen",
+    "wrong_sensor": "Einen Sensor wählen"
+  },
+  "app": {
+    "name": "Spritpreise (DE)",
+    "summary": "E5, E10 und Diesel an deinen Tankstellen, aus der Tankerkönig-Integration von Home Assistant.",
+    "tile_name": "Spritpreise",
+    "tile_example": "JET · Diesel 2,34",
+    "fuel_e5": "Super E5",
+    "fuel_e10": "Super E10",
+    "fuel_diesel": "Diesel",
+    "sort": "Sortieren nach",
+    "sort_hint": "Die günstigste zuerst für diese Sorte, oder in deiner eigenen Reihenfolge.",
+    "sort_none": "Meine Reihenfolge",
+    "cheapest": "Nur die günstigsten",
+    "cheapest_hint": "Nur so viele Tankstellen zeigen, die günstigste zuerst. 0 zeigt alle. Braucht eine Sorte zum Sortieren.",
+    "hide_closed": "Geschlossene ausblenden",
+    "hide_closed_hint": "Eine gerade geschlossene Tankstelle wird weggelassen.",
+    "address": "Adresse anzeigen",
+    "address_hint": "Straße und Ort unter dem Namen der Tankstelle.",
+    "status": "Geöffnet/geschlossen anzeigen",
+    "status_hint": "Zeigt an, wenn eine Tankstelle geschlossen ist.",
+    "changes": "Preisänderungen anzeigen",
+    "changes_hint": "Ein gestiegener Preis wird rot, ein gesunkener grün, bis zur nächsten Änderung.",
+    "fuel_hint": "Welche Preise angezeigt werden: Diesel, E10 und E5, je an oder aus."
+  }
+}

@@ -1,0 +1,28 @@
+# What tools/preview.py shows (docs/PREVIEW.md): the template sensor of home_assistant/ with made-up stations, as
+# Home Assistant has it.
+tiles:
+  - tile: prices
+    name: Fuel prices
+    entity: sensor.fuel_prices_for_screens
+    options: { e5: false }
+  - tile: prices
+    name: Cheapest diesel
+    entity: sensor.fuel_prices_for_screens
+    options: { e10: false, e5: false, sort: diesel, cheapest: 2 }
+    sizes: [1x1, 2x1, 2x2]
+  - tile: prices
+    name: No sensor yet
+    sizes: [1x1, 2x1]
+
+states:
+  sensor.fuel_prices_for_screens:
+    state: "3"
+    attributes:
+      friendly_name: Fuel prices for screens
+      station_names: [PM Xpress, JET, Shell, Raiffeisen]
+      station_places: ["Hauptstraße 12, Musterstadt", "Ringstraße 3, Musterstadt", "Am Markt 7, Neudorf",
+                       "Feldweg 1, Neudorf"]
+      station_open: [1, 1, 1, 0]
+      diesel: [2.339, 2.349, 2.369, 0]
+      e10: [2.099, 2.099, 2.119, 0]
+      e5: [2.159, 2.159, 2.179, 0]
