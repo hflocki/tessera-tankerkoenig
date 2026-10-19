@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0
+## 1.1.0
 - A tap on the tile opens a card with every station, every fuel, its address and whether it is open.
 - One cell with two or three fuels chosen shows a row per fuel under the station's name.
 - An arrow beside a price that changed: up in red, down in green.
