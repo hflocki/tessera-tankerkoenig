@@ -14,6 +14,9 @@ tiles:
     name: No sensor yet
     sizes: [1x1, 2x1]
 
+cards:
+  - { card: stations, entity: sensor.fuel_prices_for_screens }
+
 states:
   sensor.fuel_prices_for_screens:
     state: "3"

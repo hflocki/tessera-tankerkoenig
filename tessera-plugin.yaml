@@ -3,10 +3,10 @@
 # you choose. No internet service of its own: the integration already asks Tankerkönig. Every field is explained in
 # docs/MANIFEST.md of tessera-plugins.
 id: tankerkoenig
-version: 0.1.0
+version: 0.2.0
 # 0.9: Tone::GOOD and one-line labels; a tile of an entity with has_attributes needs 0.5.
 api: "0.9"
-icon: gas-station
+icon: car
 maintainer: hflocki
 license: MIT
 stage: beta
@@ -14,15 +14,24 @@ topics: [travel, money]
 requires:
   esphome: 2026.6.2
 boards: any
-flash_kb: 10
+flash_kb: 16
+
+permissions:
+  # The top bar item reads the template sensor's lists itself.
+  read_entities: ["{prices}"]
+
+inputs:
+  # The template sensor of the README, for the top bar item. The tiles choose theirs in the inspector.
+  - { id: prices, kind: entity, domains: [sensor], scope: screen, label: input_prices, hint: input_prices_hint }
 
 tiles:
   - id: prices
     name: tile_name
-    icon: gas-station
+    icon: car
     sizes: { min: 1x1, max: 4x4 }
-    # Up to six rows of eight labels, a header of four, the single view's four, and ten stations of fixed fields.
-    memory: 6400
+    # Up to six rows of eight labels, a header of four, the single view (four labels, an arrow, three fuel rows of
+    # four), and ten stations of fixed fields.
+    memory: 7400
     # The template sensor of the README: lists of the stations' names, addresses, open state and prices, in the order
     # of its device list. Only sensors with these lists are offered in the inspector.
     domains: [sensor]
@@ -45,3 +54,17 @@ tiles:
       - { id: address, kind: toggle, default: true, label: address, hint: address_hint }
       - { id: status, kind: toggle, default: true, label: status, hint: status_hint }
       - { id: changes, kind: toggle, default: true, label: changes, hint: changes_hint }
+
+cards:
+  # A tap on the tile: every station with every fuel, its address and whether it is open.
+  - { id: stations, name: card_name, wide: false }
+
+bar_items:
+  # The cheapest price of the chosen fuel while it is at the limit set on the screen or under ("Diesel 1,759 · JET").
+  - { id: cheap, label: bar_cheap_label, icon: car, example: bar_example }
+
+# The three settings of plugin.yaml, also in the plugin's details on the screen's Plugins tab (their names as ids).
+settings:
+  - { key: fuel_alert, label: setting_alert, hint: setting_alert_hint }
+  - { key: fuel_alert_type, label: setting_alert_fuel }
+  - { key: fuel_alert_price, label: setting_alert_price, hint: setting_alert_price_hint }

@@ -38,6 +38,16 @@ of a cent small, as the price boards at the road write it.
 To change the stations later, edit the list in the template sensor and reload it (**Developer tools**, **YAML**,
 **Template entities**): no new build of the screen.
 
+## Card, one cell and top bar
+
+- A tap on the tile opens a card with every station of the sensor: every fuel, its address, open or closed.
+- A tile of one cell with two or three fuels chosen shows the station's name and a row per fuel; with one fuel, that
+  price large. An arrow beside a price says how it last changed: up in red, down in green.
+- The top bar item **Cheap fuel** (Top bar, Add, From plugins) says "Diesel 1,759 · JET" while the cheapest price of
+  a fuel is at a limit or under. Choose the template sensor under **When building** in the plugin's details; then on
+  the screen (hold the top bar, Settings, Plugins) or in the plugin's details: **Cheap fuel in the top bar** on, the
+  **Fuel**, and the **Price limit** in cents (180 for 1,80 €).
+
 ## Good to know
 
 - The tile shows a new price as soon as the integration has it (by default every 30 minutes in Home Assistant).

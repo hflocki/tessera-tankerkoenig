@@ -12,7 +12,11 @@
     "choose": "Choose the sensor",
     "waiting": "No stations in the sensor",
     "none": "No station open",
-    "wrong_sensor": "Choose a sensor"
+    "wrong_sensor": "Choose a sensor",
+    "bar_cheap": "{fuel} {price} · {name}",
+    "alert": "Cheap fuel in the top bar",
+    "alert_fuel": "Fuel",
+    "alert_price": "At or under"
   },
   "app": {
     "name": "Fuel prices (DE)",
@@ -35,6 +39,16 @@
     "status_hint": "Says when a station is closed.",
     "changes": "Show price changes",
     "changes_hint": "A price that went up turns red, one that went down green, until the next change.",
-    "fuel_hint": "Which prices to show: diesel, E10 and E5, each on or off."
+    "fuel_hint": "Which prices to show: diesel, E10 and E5, each on or off.",
+    "input_prices": "Template sensor",
+    "input_prices_hint": "The fuel prices template sensor of the README, for the top bar item.",
+    "card_name": "All stations",
+    "bar_cheap_label": "Cheap fuel",
+    "bar_example": "Diesel 1.759 · JET",
+    "setting_alert": "Cheap fuel in the top bar",
+    "setting_alert_hint": "The top bar names the cheapest station while its price is at the limit or under.",
+    "setting_alert_fuel": "Fuel",
+    "setting_alert_price": "Price limit",
+    "setting_alert_price_hint": "In cents per litre, such as 180 for 1.80."
   }
 }

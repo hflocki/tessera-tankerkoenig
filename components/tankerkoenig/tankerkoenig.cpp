@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <string>
 
@@ -10,13 +11,6 @@ namespace esphome::tankerkoenig {
 using tessera::Font;
 using tessera::Tone;
 namespace ui = tessera::ui;
-
-// The three fuels Tankerkoenig reports, in the order of its answer's fields.
-static constexpr int FUELS = 3;
-static const char *const FUEL_KEYS[FUELS] = {"e5", "e10", "diesel"};
-
-static constexpr int MAX_STATIONS = 10;  // the option's `multiple`
-static constexpr int MAX_ROWS = 6;       // rows the list view makes at most (memory in the manifest)
 
 static int fuel_index(const char *key) {
   for (int i = 0; i < FUELS; ++i)
@@ -28,15 +22,6 @@ static void copy(char *dst, size_t size, const char *src) {
   snprintf(dst, size, "%s", src ? src : "");
 }
 
-// One station of the template sensor's lists, and its last prices.
-struct Station {
-  char title[48];   // the brand or the station's name
-  char where[64];   // street and town
-  enum State : uint8_t { UNKNOWN, OPEN, CLOSED, NO_PRICES } state;
-  float price[FUELS];  // 0: not sold or not known
-  int8_t trend[FUELS]; // +1 went up, -1 went down, 0 unchanged since the tile knew it
-};
-
 // Why the tile has nothing to show; NONE when it has.
 enum class Why : uint8_t { NONE, CHOOSE, WAITING, FAILED, ALL_CLOSED };
 
@@ -46,9 +31,10 @@ enum class Why : uint8_t { NONE, CHOOSE, WAITING, FAILED, ALL_CLOSED };
 // which for ten stations costs nothing, and ui::set_* change a label only when it differs.
 class PricesTile : public tessera::Tile {
  public:
-  explicit PricesTile(const tessera::Plugin *plugin) : plugin_(plugin) {}
+  explicit PricesTile(Tankerkoenig *plugin) : plugin_(plugin) {}
 
   void create(const tessera::TileContext &c) override {
+    tile_ = c.tile;
     width_ = c.width;
     height_ = c.height;
     read_options(c.options);
@@ -106,6 +92,21 @@ class PricesTile : public tessera::Tile {
     else if (why == Why::NONE && count == 0) why = hide_closed_ ? Why::ALL_CLOSED : Why::WAITING;
     if (list_) paint_list(shown, count, why);
     else paint_single(shown, count, why);
+  }
+
+  // A tap opens every station with every fuel.
+  void on_tap() override {
+    if (station_count_ == 0) return;
+    memcpy(plugin_->card_stations, stations_, sizeof stations_);
+    plugin_->card_count = station_count_;
+    tessera::open_card(plugin_->plugin_id(), "stations", "", tile_);
+  }
+
+  // The stations the card starts with, before its first data.
+  void load(const Station *stations, int count) {
+    station_count_ = std::min(count, MAX_STATIONS);
+    memcpy(stations_, stations, sizeof(Station) * station_count_);
+    wait_ = Why::NONE;
   }
 
   void on_theme() override {
@@ -206,14 +207,68 @@ class PricesTile : public tessera::Tile {
   // ---- One column ----------------------------------------------------------------------------------------------
 
   void make_single(lv_obj_t *parent) {
+    const int line = ui::line_height(Font::BODY);
+    arrow_w_ = ui::line_height(Font::ICON_SMALL);
     name_ = ui::label(parent, Font::BODY, theme::MUTED);
-    lv_obj_set_size(name_, width_, ui::line_height(Font::BODY));
+    lv_obj_set_size(name_, width_ - arrow_w_ - ui::px(4), line);
     lv_obj_set_pos(name_, 0, 0);
+    // How the last price changed, top right: up in red, down in green.
+    arrow_ = ui::label(parent, Font::ICON_SMALL, theme::MUTED);
+    lv_obj_set_size(arrow_, arrow_w_, arrow_w_);
+    lv_obj_set_pos(arrow_, width_ - arrow_w_, (line - arrow_w_) / 2);
     big_ = ui::label(parent, Font::VALUE, theme::INK);
     small_ = ui::label(parent, Font::TITLE, theme::INK);
     foot_ = ui::label(parent, Font::BODY, theme::MUTED);
-    lv_obj_set_size(foot_, width_, ui::line_height(Font::BODY));
-    lv_obj_set_pos(foot_, 0, height_ - ui::line_height(Font::BODY));
+    lv_obj_set_size(foot_, width_, line);
+    lv_obj_set_pos(foot_, 0, height_ - line);
+    make_fuel_rows(parent, line);
+  }
+
+  // With two or three fuels chosen and room for them, a row per fuel under the name: its name at the left, its price
+  // at the right with its tenth and its arrow, in the largest face all rows fit in.
+  void make_fuel_rows(lv_obj_t *parent, int top) {
+    multi_ = false;
+    if (fuel_count_ < 2) return;
+    int label_w = 0;
+    for (int k = 0; k < fuel_count_; ++k)
+      label_w = std::max(label_w, ui::text_width(plugin_->text(FUEL_KEYS[fuels_[k]]), Font::BODY));
+    const int room = height_ - top;
+    for (Font f : {Font::HEADLINE, Font::TITLE, Font::BODY_LARGE}) {
+      const int price_w = ui::text_width(std::string("8") + decimal_ + "88", f) + ui::text_width("8", Font::BODY);
+      if (fuel_count_ * ui::line_height(f) <= room && label_w + ui::px(6) + price_w + arrow_w_ <= width_) {
+        row_face_ = f;
+        multi_ = true;
+        break;
+      }
+    }
+    if (!multi_) return;
+    const int fh = ui::line_height(row_face_), bh = ui::line_height(Font::BODY), step = room / fuel_count_;
+    for (int k = 0; k < fuel_count_; ++k) {
+      FuelRow &r = fuel_rows_[k];
+      const int y = top + k * step + (step - fh) / 2;
+      r.label = ui::label(parent, Font::BODY, theme::MUTED);
+      lv_obj_set_size(r.label, label_w + ui::px(2), bh);
+      lv_obj_set_pos(r.label, 0, y + (fh - bh) / 2);
+      r.price = ui::label(parent, row_face_, theme::INK);
+      lv_obj_set_style_text_align(r.price, LV_TEXT_ALIGN_RIGHT, 0);
+      r.tenth = ui::label(parent, Font::BODY, theme::INK);
+      r.arrow = ui::label(parent, Font::ICON_SMALL, theme::MUTED);
+      const int tw = ui::text_width("8", Font::BODY) + ui::px(2);
+      const int price_x = label_w + ui::px(6);
+      lv_obj_set_size(r.price, width_ - arrow_w_ - tw - price_x, fh);
+      lv_obj_set_pos(r.price, price_x, y);
+      lv_obj_set_size(r.tenth, tw, bh);
+      lv_obj_set_pos(r.tenth, width_ - arrow_w_ - tw, y);
+      lv_obj_set_size(r.arrow, arrow_w_, arrow_w_);
+      lv_obj_set_pos(r.arrow, width_ - arrow_w_, y + (fh - arrow_w_) / 2);
+    }
+  }
+
+  // The arrow of a price's last change, or nothing.
+  void paint_arrow(lv_obj_t *arrow, const Station &s, int f) const {
+    const int t = changes_ && s.state != Station::CLOSED ? s.trend[f] : 0;
+    ui::set_text(arrow, t > 0 ? ui::icon(0xF005D) : t < 0 ? ui::icon(0xF0045) : "");
+    ui::set_tone(arrow, t > 0 ? Tone::ALERT : t < 0 ? Tone::GOOD : Tone::NORMAL, theme::MUTED);
   }
 
   void paint_single(const Station **shown, int count, Why why) {
@@ -222,11 +277,40 @@ class PricesTile : public tessera::Tile {
       ui::set_text(name_, "");
       ui::set_text(small_, "");
       ui::set_text(foot_, "");
+      ui::set_text(arrow_, "");
+      clear_fuel_rows();
       place_big(why_text(why), "", Font::BODY_LARGE, theme::MUTED, line, height_);
       return;
     }
     const Station &s = *shown[0];
+    if (multi_) {
+      // The station's name, closed or without prices beside it, and a row per fuel.
+      bool alert = false;
+      const std::string second = status_ && s.state != Station::OPEN ? second_line(s, alert) : "";
+      ui::set_text(name_, second.empty() ? std::string(s.title) : std::string(s.title) + " \u00B7 " + second);
+      ui::set_tone(name_, alert ? Tone::ALERT : Tone::NORMAL, theme::MUTED);
+      ui::set_text(arrow_, "");
+      ui::set_text(foot_, "");
+      ui::set_text(big_, "");
+      ui::set_text(small_, "");
+      for (int k = 0; k < fuel_count_; ++k) {
+        FuelRow &r = fuel_rows_[k];
+        const int fk = fuels_[k];
+        std::string big, tenth;
+        price_parts(s.price[fk], big, tenth);
+        ui::set_text(r.label, plugin_->text(FUEL_KEYS[fk]));
+        ui::set_color(r.label, theme::MUTED);
+        ui::set_text(r.price, big);
+        ui::set_text(r.tenth, tenth);
+        const theme::Role normal = sort_ < 0 || sort_ == fk ? theme::INK : theme::INK_SOFT;
+        tone_price(r.price, s, fk, normal);
+        tone_price(r.tenth, s, fk, normal);
+        paint_arrow(r.arrow, s, fk);
+      }
+      return;
+    }
     const int f = main_fuel();
+    paint_arrow(arrow_, s, f);
     ui::set_text(name_, s.title);
     bool alert = false;
     std::string foot = plugin_->text(FUEL_KEYS[f]);
@@ -249,6 +333,16 @@ class PricesTile : public tessera::Tile {
     place_big(big, tenth, face, theme::INK, line, height_ - line);
     tone_price(big_, s, f, theme::INK);
     tone_price(small_, s, f, theme::INK);
+  }
+
+  void clear_fuel_rows() {
+    if (!multi_) return;
+    for (int k = 0; k < fuel_count_; ++k) {
+      ui::set_text(fuel_rows_[k].label, "");
+      ui::set_text(fuel_rows_[k].price, "");
+      ui::set_text(fuel_rows_[k].tenth, "");
+      ui::set_text(fuel_rows_[k].arrow, "");
+    }
   }
 
   // The large price between the name and the foot, in the middle, with its tenth of a cent raised beside it.
@@ -361,8 +455,12 @@ class PricesTile : public tessera::Tile {
     }
   }
 
-  const tessera::Plugin *plugin_;
-  int width_ = 0, height_ = 0;
+  struct FuelRow {
+    lv_obj_t *label{}, *price{}, *tenth{}, *arrow{};
+  };
+
+  Tankerkoenig *plugin_;
+  int width_ = 0, height_ = 0, tile_ = -1;
   char decimal_[4] = ".";
 
   Station stations_[MAX_STATIONS]{};
@@ -374,7 +472,11 @@ class PricesTile : public tessera::Tile {
   Why wait_ = Why::CHOOSE;
 
   // One column.
-  lv_obj_t *name_{}, *big_{}, *small_{}, *foot_{};
+  lv_obj_t *name_{}, *big_{}, *small_{}, *foot_{}, *arrow_{};
+  bool multi_ = false;
+  int arrow_w_ = 0;
+  Font row_face_ = Font::TITLE;
+  FuelRow fuel_rows_[FUELS];
   // A list.
   bool list_ = false, two_lines_ = false;
   int head_h_ = 0, gap_ = 0, col_w_ = 0, col_gap_ = 0, name_w_ = 0, row_h_ = 0, row_count_ = 0, shown_fuels_ = 0;
@@ -382,8 +484,134 @@ class PricesTile : public tessera::Tile {
   Row rows_[MAX_ROWS];
 };
 
+// ---- The card: every station with every fuel, its address and whether it is open ----
+
+class StationsCard : public tessera::Card {
+ public:
+  explicit StationsCard(Tankerkoenig *plugin) : plugin_(plugin), list_(plugin) {}
+
+  void open(const tessera::CardContext &c) override {
+    JsonDocument options;
+    options["sort"] = "none";
+    tessera::TileContext t{};
+    t.parent = c.parent;
+    t.width = c.width;
+    t.height = c.height;
+    t.columns = 4;
+    t.rows = 4;
+    t.name = "";
+    t.entity = "";
+    t.tile = -1;
+    t.options = options.as<JsonObjectConst>();
+    list_.create(t);
+    list_.load(plugin_->card_stations, plugin_->card_count);
+    list_.on_tick(0);
+  }
+  void on_state(JsonObjectConst data) override { list_.on_state(data); }
+  void on_tick(uint32_t epoch) override { list_.on_tick(epoch); }
+  void on_theme() override { list_.on_theme(); }
+
+ private:
+  Tankerkoenig *plugin_;
+  PricesTile list_;
+};
+
+// ---- The plugin ----
+
 void Tankerkoenig::setup() {
   add_tile("prices", [this]() { return new PricesTile(this); });
+  add_card("stations", [this]() { return new StationsCard(this); });
+  add_bar_item("cheap", [this]() { return bar(); });
+}
+
+// The fuel the top bar watches: the select's choice Diesel, E10 or E5 as the index of FUEL_KEYS.
+int Tankerkoenig::alert_fuel() const {
+  static const int BY_CHOICE[FUELS] = {2, 1, 0};
+  if (!alert_fuel_) return 2;
+  const auto index = alert_fuel_->active_index();
+  return index.has_value() && *index < FUELS ? BY_CHOICE[*index] : 2;
+}
+
+// Home Assistant hands a list attribute to a text sensor as Python writes it: "[2.339, 0, 2.349]" and
+// "['PM', 'JET']". These read it back.
+static int read_numbers(const std::string &text, float *out, int most) {
+  int n = 0;
+  const char *p = text.c_str();
+  while (*p && n < most) {
+    if ((*p >= '0' && *p <= '9') || *p == '.') {
+      char *end = nullptr;
+      out[n++] = strtof(p, &end);
+      p = end && end > p ? end : p + 1;
+    } else {
+      ++p;
+    }
+  }
+  return n;
+}
+
+static int read_texts(const std::string &text, std::string *out, int most) {
+  int n = 0;
+  for (size_t i = 0; i < text.size() && n < most; ++i) {
+    const char q = text[i];
+    if (q != '\'' && q != '"') continue;
+    const size_t end = text.find(q, i + 1);
+    if (end == std::string::npos) break;
+    out[n++] = text.substr(i + 1, end - i - 1);
+    i = end;
+  }
+  return n;
+}
+
+// "Diesel 1,759 · JET" in the top bar while the cheapest station's price of the chosen fuel is at the limit or under.
+tessera::BarItem Tankerkoenig::bar() const {
+  tessera::BarItem item;
+  if (!alert_ || !alert_->state || !alert_price_ || std::isnan(alert_price_->state)) return item;
+  const int f = alert_fuel();
+  if (!prices_[f] || !prices_[f]->has_state()) return item;
+  float prices[MAX_STATIONS];
+  const int n = read_numbers(prices_[f]->state, prices, MAX_STATIONS);
+  int best = -1;
+  for (int i = 0; i < n; ++i)
+    if (prices[i] > 0 && (best < 0 || prices[i] < prices[best])) best = i;
+  if (best < 0 || prices[best] * 100.0f > alert_price_->state + 0.001f) return item;
+  std::string names[MAX_STATIONS];
+  const int count = names_ && names_->has_state() ? read_texts(names_->state, names, MAX_STATIONS) : 0;
+  char price[16];
+  const long milli = lroundf(prices[best] * 1000.0f);
+  snprintf(price, sizeof price, "%ld%s%03ld", milli / 1000, text("decimal"), milli % 1000);
+  item.shown = true;
+  item.icon = 0xF010B;  // car
+  item.tone = Tone::GOOD;
+  std::string words = tessera::fill(text("bar_cheap"), "fuel", text(FUEL_KEYS[f]));
+  words = tessera::fill(words.c_str(), "price", price);
+  item.text = tessera::fill(words.c_str(), "name", best < count ? names[best] : std::string());
+  return item;
+}
+
+bool Tankerkoenig::settings(tessera::SettingsPage &page) {
+  page.icon = "\U000F010B";
+  page.toggle(text("alert"), [this]() { return alert_ && alert_->state; },
+              [this](bool on) { if (alert_) { if (on) alert_->turn_on(); else alert_->turn_off(); } });
+  page.choice(text("alert_fuel"), {text("diesel"), text("e10"), text("e5")},
+              [this]() {
+                const auto index = alert_fuel_ ? alert_fuel_->active_index() : optional<size_t>();
+                return index.has_value() ? static_cast<int>(*index) : 0;
+              },
+              [this](int index) {
+                if (!alert_fuel_) return;
+                auto call = alert_fuel_->make_call();
+                call.set_index(index);
+                call.perform();
+              });
+  page.number(text("alert_price"), 100, 300, 1, "ct",
+              [this]() { return alert_price_ && !std::isnan(alert_price_->state) ? static_cast<int>(alert_price_->state) : 180; },
+              [this](int value) {
+                if (!alert_price_) return;
+                auto call = alert_price_->make_call();
+                call.set_value(value);
+                call.perform();
+              });
+  return true;
 }
 
 }  // namespace esphome::tankerkoenig

@@ -1,3 +1,57 @@
-# What a screen gets when it takes this plugin: the component, configured. Tessera includes this file from the screen's
-# <name>.plugins.yaml and adds this plugin's components/ folder as an ESPHome external component.
+# What a screen gets when it takes this plugin. Tessera includes this file from the screen's <name>.plugins.yaml with
+# PRICES filled in (the template sensor chosen in the plugin's details), and adds the components folder beside it.
+defaults:
+  PRICES: sensor.fuel_prices_for_screens
+
+# The template sensor's lists the top bar needs, read straight from Home Assistant: the stations' names and their
+# prices per fuel ("[2.339, 0, 2.349]").
+text_sensor:
+  - { platform: homeassistant, id: fuel_names, entity_id: "${PRICES}", attribute: station_names, internal: true }
+  - { platform: homeassistant, id: fuel_e5, entity_id: "${PRICES}", attribute: e5, internal: true }
+  - { platform: homeassistant, id: fuel_e10, entity_id: "${PRICES}", attribute: e10, internal: true }
+  - { platform: homeassistant, id: fuel_diesel, entity_id: "${PRICES}", attribute: diesel, internal: true }
+
+# Three settings, kept on the screen and shown in Home Assistant and on the screen's settings page: whether the top bar
+# says when a fuel is cheap, which fuel, and from which price in cents.
+switch:
+  - platform: template
+    id: fuel_alert
+    name: "Fuel alert"
+    icon: mdi:gas-station
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    entity_category: config
+
+select:
+  - platform: template
+    id: fuel_alert_type
+    name: "Fuel alert type"
+    icon: mdi:gas-station
+    optimistic: true
+    options: [Diesel, E10, E5]
+    initial_option: Diesel
+    restore_value: true
+    entity_category: config
+
+number:
+  - platform: template
+    id: fuel_alert_price
+    name: "Fuel alert price"
+    icon: mdi:currency-eur
+    optimistic: true
+    min_value: 100
+    max_value: 300
+    step: 1
+    initial_value: 180
+    unit_of_measurement: ct
+    restore_value: true
+    entity_category: config
+
 tankerkoenig:
+  names: fuel_names
+  e5: fuel_e5
+  e10: fuel_e10
+  diesel: fuel_diesel
+  alert: fuel_alert
+  alert_fuel: fuel_alert_type
+  alert_price: fuel_alert_price
