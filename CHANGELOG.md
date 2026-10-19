@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.6
+- New in the inspector: **Station in front**, a part of a name or address (JET, Burger). That station comes first,
+  in one cell too; the others follow sorted as before.
+
 ## 1.1.0
 - A tap on the tile opens a card with every station, every fuel, its address and whether it is open.
 - One cell with two or three fuels chosen shows a row per fuel under the station's name.

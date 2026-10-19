@@ -49,6 +49,8 @@
     "setting_alert_hint": "The top bar names the cheapest station while its price is at the limit or under.",
     "setting_alert_fuel": "Fuel",
     "setting_alert_price": "Price limit",
-    "setting_alert_price_hint": "In cents per litre, such as 180 for 1.80."
+    "setting_alert_price_hint": "In cents per litre, such as 180 for 1.80.",
+    "front": "Station in front",
+    "front_hint": "A part of its name or address, such as JET or Burger. It comes first, in one cell too; the others follow in their order. Empty: the first in that order."
   }
 }

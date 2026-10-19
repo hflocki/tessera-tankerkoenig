@@ -49,6 +49,8 @@
     "setting_alert_hint": "Die obere Leiste nennt die günstigste Tankstelle, solange ihr Preis die Grenze erreicht oder unterschreitet.",
     "setting_alert_fuel": "Sorte",
     "setting_alert_price": "Preisgrenze",
-    "setting_alert_price_hint": "In Cent pro Liter, z. B. 180 für 1,80 €."
+    "setting_alert_price_hint": "In Cent pro Liter, z. B. 180 für 1,80 €.",
+    "front": "Tankstelle vorne",
+    "front_hint": "Ein Teil von Name oder Adresse, z. B. JET oder Burger. Sie steht vorne, auch in der 1×1-Kachel; die anderen folgen in ihrer Reihenfolge. Leer: die erste dieser Reihenfolge."
   }
 }

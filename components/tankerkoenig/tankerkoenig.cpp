@@ -1,6 +1,7 @@
 #include "tankerkoenig.h"
 #include <algorithm>
 #include <cmath>
+#include <cctype>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -135,6 +136,8 @@ class PricesTile : public tessera::Tile {
     address_ = o["address"] | true;
     status_ = o["status"] | true;
     changes_ = o["changes"] | true;
+    // The station in front: a part of its name or address, compared without regard to case.
+    copy(front_, sizeof front_, lower(o["front"] | "").c_str());
   }
 
   // The stations to show, in the order to show them: closed ones left out when asked, sorted by the chosen fuel
@@ -155,7 +158,51 @@ class PricesTile : public tessera::Tile {
       });
       if (cheapest_ > 0 && n > cheapest_) n = cheapest_;
     }
+    // The station chosen for the front goes first, whatever the order and the filter say; the rest keep their order,
+    // and the last one makes way when only the cheapest few are shown.
+    if (front_[0]) {
+      const Station *pinned = nullptr;
+      for (int i = 0; i < station_count_ && !pinned; ++i)
+        if (lower(stations_[i].title).find(front_) != std::string::npos ||
+            lower(stations_[i].where).find(front_) != std::string::npos)
+          pinned = &stations_[i];
+      if (pinned) {
+        int at = 0;
+        while (at < n && out[at] != pinned) ++at;
+        if (at == n) {
+          const int limit = sort_ >= 0 && cheapest_ > 0 ? cheapest_ : MAX_STATIONS;
+          at = std::min(n, limit - 1);
+          if (n < limit) ++n;
+        }
+        for (int i = at; i > 0; --i) out[i] = out[i - 1];
+        out[0] = pinned;
+      }
+    }
     return n;
+  }
+
+  // Lowercase, umlauts as their plain vowel and ß as ss, so "Huenger", "Hünger" and "HÜNGER" are the same word.
+  static std::string lower(const char *text) {
+    std::string out;
+    for (const char *p = text ? text : ""; *p; ++p) {
+      const unsigned char c = static_cast<unsigned char>(*p);
+      if (c == 0xCC && static_cast<unsigned char>(p[1]) == 0x88) {  // a combining diaeresis
+        ++p;
+        continue;
+      }
+      if (c == 0xC3 && p[1]) {
+        const unsigned char n = static_cast<unsigned char>(p[1]);
+        const char *plain = n == 0xA4 || n == 0x84 ? "a" : n == 0xB6 || n == 0x96 ? "o" : n == 0xBC || n == 0x9C ? "u"
+                            : n == 0x9F ? "ss" : nullptr;
+        if (plain) {
+          out += plain;
+          ++p;
+          continue;
+        }
+      }
+      out += static_cast<char>(std::tolower(c));
+    }
+    return out;
   }
 
   // The fuel a single cell shows: the one it sorts by, else the first one chosen.
@@ -469,6 +516,7 @@ class PricesTile : public tessera::Tile {
   int fuel_count_ = 0;
   int sort_ = -1, cheapest_ = 0;
   bool hide_closed_ = false, address_ = true, status_ = true, changes_ = true;
+  char front_[48]{};
   Why wait_ = Why::CHOOSE;
 
   // One column.

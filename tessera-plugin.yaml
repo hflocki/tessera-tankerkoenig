@@ -3,7 +3,7 @@
 # you choose. No internet service of its own: the integration already asks Tankerkönig. Every field is explained in
 # docs/MANIFEST.md of tessera-plugins.
 id: tankerkoenig
-version: 1.1.0
+version: 1.1.6
 # 0.9: Tone::GOOD and one-line labels; a tile of an entity with has_attributes needs 0.5.
 api: "0.9"
 icon: car
@@ -49,6 +49,7 @@ tiles:
         hint: sort_hint
         choices: [{ value: none, label: sort_none }, { value: diesel, label: fuel_diesel },
                   { value: e10, label: fuel_e10 }, { value: e5, label: fuel_e5 }]
+      - { id: front, kind: text, label: front, hint: front_hint }
       - { id: cheapest, kind: number, min: 0, max: 10, step: 1, default: 0, label: cheapest, hint: cheapest_hint }
       - { id: hide_closed, kind: toggle, default: false, label: hide_closed, hint: hide_closed_hint }
       - { id: address, kind: toggle, default: true, label: address, hint: address_hint }

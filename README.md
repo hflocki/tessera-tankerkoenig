@@ -38,6 +38,12 @@ of a cent small, as the price boards at the road write it.
 To change the stations later, edit the list in the template sensor and reload it (**Developer tools**, **YAML**,
 **Template entities**): no new build of the screen.
 
+## Station in front
+
+**Station in front** in the inspector takes a part of a station's name or address (`JET`, `Burger`). That station
+comes first: a tile of one cell shows it, a list has it on top, and the others follow sorted as set. Empty leaves the
+order as it is.
+
 ## Card, one cell and top bar
 
 - A tap on the tile opens a card with every station of the sensor: every fuel, its address, open or closed.
