@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.7
+- A picture for the Plugins page.
+
 ## 1.1.6
 - New in the inspector: **Station in front**, a part of a name or address (JET, Burger). That station comes first,
   in one cell too; the others follow sorted as before.

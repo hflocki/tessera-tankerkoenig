@@ -3,7 +3,7 @@
 # you choose. No internet service of its own: the integration already asks Tankerkönig. Every field is explained in
 # docs/MANIFEST.md of tessera-plugins.
 id: tankerkoenig
-version: 1.1.6
+version: 1.1.7
 # 0.9: Tone::GOOD and one-line labels; a tile of an entity with has_attributes needs 0.5.
 api: "0.9"
 icon: car
