@@ -1,0 +1,39 @@
+name: Feature request
+description: An idea for something new or a change.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        One idea per issue. To support an existing idea, add a 👍 reaction instead of a comment: the reactions are what I sort by.
+  - type: textarea
+    id: idea
+    attributes:
+      label: What you would like
+      description: What the plugin should do, in a few sentences.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: What it is for
+      description: The situation where you miss it. This helps to find the simplest way.
+    validations:
+      required: true
+  - type: input
+    id: size
+    attributes:
+      label: Tile size and screen
+      placeholder: "2x1 on a 10\" screen"
+  - type: textarea
+    id: picture
+    attributes:
+      label: Sketch or example (optional)
+      description: A drawing, a screenshot of something similar, an example of the data.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you send it
+      options:
+        - label: I searched the open and closed issues for the same idea.
+          required: true
