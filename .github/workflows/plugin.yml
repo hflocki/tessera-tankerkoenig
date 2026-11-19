@@ -1,0 +1,88 @@
+# Checks the plugin on every push and pull request, renders it on the bench, and makes the GitHub release when a
+# version tag (1.2.3) is pushed: the Tessera app and the community index only take releases.
+name: plugin
+on:
+  push:
+    branches: [main]
+    tags: ["[0-9]*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: plugin
+      - uses: actions/checkout@v4
+        with:
+          repository: MaxGramser/tessera-plugins
+          path: tessera-plugins
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pyyaml
+      - name: Manifest and rules (tools/check.py)
+        run: python3 tessera-plugins/tools/check.py plugin
+      - name: The tag is the manifest's version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          v=$(python3 -c "import yaml; print(yaml.safe_load(open('plugin/tessera-plugin.yaml'))['version'])")
+          if [ "$v" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::tag $GITHUB_REF_NAME, but tessera-plugin.yaml says $v"
+            exit 1
+          fi
+      - name: The changelog has the version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: grep -q "^## $GITHUB_REF_NAME\$" plugin/CHANGELOG.md || { echo "::error::no '## $GITHUB_REF_NAME' in CHANGELOG.md"; exit 1; }
+
+  preview:
+    # Builds the screens' real firmware with the plugin for the runner and renders every tile, card and size.
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: plugin
+      - uses: actions/checkout@v4
+        with:
+          repository: MaxGramser/tessera-plugins
+          path: tessera-plugins
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: sudo apt-get update && sudo apt-get install -y build-essential libsdl2-dev python3-venv xvfb
+      - name: Bench cache (Tessera checkout, ESPHome, build files)
+        uses: actions/cache@v4
+        with:
+          path: tessera-plugins/tools/.cache
+          key: bench-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: bench-${{ runner.os }}-
+      - name: Set up the bench
+        run: python3 tessera-plugins/tools/preview.py --setup
+      - name: Render (preview.py --strict)
+        run: xvfb-run -a python3 tessera-plugins/tools/preview.py plugin --strict
+      - name: Pictures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview
+          path: plugin/.preview
+          if-no-files-found: ignore
+
+  release:
+    needs: preview
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Release with the changelog entry
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          awk -v head="## $GITHUB_REF_NAME" '$0 == head { on = 1; next } /^## / { if (on) exit } on' CHANGELOG.md > notes.md
+          gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file notes.md
