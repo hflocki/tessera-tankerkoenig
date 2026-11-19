@@ -1,0 +1,22 @@
+# Locks issues two weeks after they are closed, so a closed issue does not turn into a chat.
+# A new problem gets a new issue, which links the old one.
+name: lock
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+permissions:
+  issues: write
+  pull-requests: write
+jobs:
+  lock:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dessant/lock-threads@v5
+        with:
+          issue-inactive-days: 14
+          pr-inactive-days: 30
+          issue-comment: >
+            This issue is closed and now locked. If something still does not work, please open a new issue
+            with the form and link this one.
+          process-only: issues, prs
