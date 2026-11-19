@@ -5,6 +5,9 @@ body:
   - type: markdown
     attributes:
       value: |
+        **A hobby project.** These plugins are made in my spare time, for free and without warranty. There is no
+        guaranteed response time, and not every request gets built. Issues are for bugs and concrete ideas, not for chatting.
+
         Thanks for taking the time. Please fill in every field: an issue without the version and the screen is hard to act on.
         One problem per issue. To agree with an existing issue, add a 👍 reaction instead of a comment.
   - type: input

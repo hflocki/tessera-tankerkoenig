@@ -5,8 +5,16 @@ on:
   push:
     branches: [main]
     tags: ["[0-9]*"]
+    # Only changes to the plugin itself; a tag always runs (GitHub does not filter tag pushes by path).
+    paths-ignore: [".github/ISSUE_TEMPLATE/**", ".github/workflows/lock.yml", "README.md"]
   pull_request:
+    paths-ignore: [".github/ISSUE_TEMPLATE/**", ".github/workflows/lock.yml", "README.md"]
   workflow_dispatch:
+
+# A newer push cancels a run of the same branch or tag that is still going.
+concurrency:
+  group: plugin-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: write

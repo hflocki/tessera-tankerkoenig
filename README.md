@@ -65,3 +65,14 @@ order as it is.
 The plugin talks to no service. Its data comes from Home Assistant, from the Tankerkönig integration you set up there.
 Tankerkönig publishes the data of the German market transparency office for fuels (MTS-K) under
 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+
+## A hobby project
+
+This plugin is made and maintained in my spare time, for free and without any warranty. Bug reports and ideas are
+welcome, but please keep in mind:
+
+- There is no support and no guaranteed response time. I answer when I find the time, which can take days or weeks.
+- Not every request gets built. I add what fits the plugin and what I can keep working over time.
+- Issues are for bugs and concrete ideas, not for chatting. Please use the forms, keep to one topic per issue, and
+  add a 👍 reaction instead of a "+1" or "same here" comment.
+- Pull requests are welcome; for a larger change, open an issue first so we can agree on the way.

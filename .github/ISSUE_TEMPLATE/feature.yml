@@ -5,6 +5,9 @@ body:
   - type: markdown
     attributes:
       value: |
+        **A hobby project.** These plugins are made in my spare time, for free and without warranty. There is no
+        guaranteed response time, and not every request gets built. Issues are for bugs and concrete ideas, not for chatting.
+
         One idea per issue. To support an existing idea, add a 👍 reaction instead of a comment: the reactions are what I sort by.
   - type: textarea
     id: idea
