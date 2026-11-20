@@ -91,3 +91,5 @@ entirely voluntary: it is a thank-you, not a payment. It does not buy support, f
 service, and the plugin stays exactly the same for everyone, whether they donate or not.
 
 [![Buy me a coffee](https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=&slug=hflocki&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff)](https://www.buymeacoffee.com/hflocki)
+
+☕ [buymeacoffee.com/hflocki](https://www.buymeacoffee.com/hflocki)
