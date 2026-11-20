@@ -68,11 +68,28 @@ Tankerkönig publishes the data of the German market transparency office for fue
 
 ## A hobby project
 
-This plugin is made and maintained in my spare time, for free and without any warranty. Bug reports and ideas are
-welcome, but please keep in mind:
+This plugin is a private, non-commercial hobby project. I build and maintain it in my spare time and share it
+free of charge as open source under the [MIT License](LICENSE). It is free and will stay free: there is no paid
+version, no paid feature and no paid support.
+
+Bug reports and ideas are welcome, but please keep in mind:
 
 - There is no support and no guaranteed response time. I answer when I find the time, which can take days or weeks.
 - Not every request gets built. I add what fits the plugin and what I can keep working over time.
 - Issues are for bugs and concrete ideas, not for chatting. Please use the forms, keep to one topic per issue, and
   add a 👍 reaction instead of a "+1" or "same here" comment.
 - Pull requests are welcome; for a larger change, open an issue first so we can agree on the way.
+
+### No warranty, no liability
+
+The plugin is provided "as is", without any warranty and without guaranteed support, updates or fixes. You use it at
+your own risk. To the extent permitted by law, I accept no liability for any damage or data loss resulting from its
+use. The full terms are in the [MIT License](LICENSE).
+
+### Buy me a coffee
+
+If the plugin is useful to you and you would like to say thanks, you are welcome to buy me a coffee. A donation is
+entirely voluntary: it is a thank-you, not a payment. It does not buy support, features, a response time or any other
+service, and the plugin stays exactly the same for everyone, whether they donate or not.
+
+[![Buy me a coffee](https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=&slug=hflocki&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff)](https://www.buymeacoffee.com/hflocki)
